@@ -36,6 +36,7 @@ import akka.testkit.EventFilter
 import com.lightbend.lagom.internal.javadsl.broker.kafka.JavadslKafkaApiSpec.{ InMemoryOffsetStore, NoServiceLocator, NullPersistentEntityRegistry }
 import com.lightbend.lagom.internal.javadsl.persistence.OffsetAdapter
 import com.lightbend.lagom.javadsl.broker.TopicProducer
+import com.lightbend.lagom.javadsl.client.ConfigurationServiceLocator
 import com.lightbend.lagom.spi.persistence.{ OffsetDao, OffsetStore }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._

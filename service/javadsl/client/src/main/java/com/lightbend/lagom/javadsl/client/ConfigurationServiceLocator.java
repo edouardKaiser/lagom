@@ -1,8 +1,10 @@
 /*
  * Copyright (C) 2016-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package com.lightbend.lagom.javadsl.api;
+package com.lightbend.lagom.javadsl.client;
 
+import com.lightbend.lagom.internal.client.CircuitBreakers;
+import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import org.pcollections.HashTreePMap;
@@ -18,19 +20,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 
 /**
  * A service locator that uses static configuration.
  */
 @Singleton
-public class ConfigurationServiceLocator implements ServiceLocator {
+public class ConfigurationServiceLocator extends CircuitBreakingServiceLocator {
 
     private static final String LAGOM_SERVICES_KEY = "lagom.services";
     private final PMap<String, URI> services;
 
     @Inject
-    public ConfigurationServiceLocator(Configuration configuration) {
+    public ConfigurationServiceLocator(Configuration configuration, CircuitBreakers circuitBreakers) {
+        super(circuitBreakers);
         Map<String, URI> services = new HashMap<>();
         if (configuration.underlying().hasPath(LAGOM_SERVICES_KEY)) {
             Config config = configuration.underlying().getConfig(LAGOM_SERVICES_KEY);
@@ -54,11 +56,4 @@ public class ConfigurationServiceLocator implements ServiceLocator {
         return CompletableFuture.completedFuture(Optional.ofNullable(services.get(name)));
     }
 
-    @Override
-    public <T> CompletionStage<Optional<T>> doWithService(String name, Descriptor.Call<?, ?> serviceCall, Function<URI, CompletionStage<T>> block) {
-        return Optional.ofNullable(services.get(name))
-                // type parameter specified to work around https://bugs.eclipse.org/bugs/show_bug.cgi?id=511252
-                .<CompletionStage<Optional<T>>>map(block.andThen(cs -> cs.thenApply(Optional::ofNullable)))
-                .orElse(CompletableFuture.completedFuture(Optional.empty()));
-    }
 }

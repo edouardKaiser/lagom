@@ -6,7 +6,10 @@ package com.lightbend.lagom.javadsl.api
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
+import com.lightbend.lagom.javadsl.client.ConfigurationServiceLocator
+import com.lightbend.lagom.internal.client.CircuitBreakers
 import com.typesafe.config.ConfigFactory
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
 import play.Configuration
 
@@ -21,7 +24,7 @@ class ConfigurationServiceLocatorSpec extends WordSpec with Matchers {
       |  bar = "http://localhost:10002"
       |}
     """.stripMargin
-  )))
+  )), MockitoSugar.mock(classOf[CircuitBreakers]))
 
   def locate(serviceName: String) =
     serviceLocator.locate(serviceName).toCompletableFuture.get(10, TimeUnit.SECONDS).asScala
