@@ -23,7 +23,7 @@ import java.util.function.Function;
 /**
  * A service locator that uses static configuration.
  *
- * @deprecated use {@link #com.lightbend.lagom.javadsl.client.ConfigurationServiceLocator} instead.
+ * @deprecated use {@link com.lightbend.lagom.javadsl.client.ConfigurationServiceLocator} instead.
  */
 @Deprecated
 @Singleton

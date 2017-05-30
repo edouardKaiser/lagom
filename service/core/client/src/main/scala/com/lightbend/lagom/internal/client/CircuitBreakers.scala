@@ -18,17 +18,19 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
-object CircuitBreakers {
-  private final case class CircuitBreakerHolder(breaker: AkkaCircuitBreaker, metrics: CircuitBreakerMetrics)
+trait CircuitBreakers {
+  def withCircuitBreaker[T](id: String)(body: => Future[T]): Future[T]
 }
 
 @Singleton
-class CircuitBreakers @Inject() (system: ActorSystem, circuitBreakerConfig: CircuitBreakerConfig,
-                                 metricsProvider: CircuitBreakerMetricsProvider) {
-  import CircuitBreakers._
-  lazy val config = circuitBreakerConfig.config
-  private lazy val defaultBreakerConfig = circuitBreakerConfig.default
-  private lazy val breakers = new ConcurrentHashMap[String, Option[CircuitBreakerHolder]]
+class CircuitBreakersImpl @Inject() (system: ActorSystem, circuitBreakerConfig: CircuitBreakerConfig,
+                                     metricsProvider: CircuitBreakerMetricsProvider) extends CircuitBreakers {
+
+  private final case class CircuitBreakerHolder(breaker: AkkaCircuitBreaker, metrics: CircuitBreakerMetrics)
+
+  val config = circuitBreakerConfig.config
+  private val defaultBreakerConfig = circuitBreakerConfig.default
+  private val breakers = new ConcurrentHashMap[String, Option[CircuitBreakerHolder]]
 
   def withCircuitBreaker[T](id: String)(body: => Future[T]): Future[T] = {
     breaker(id) match {
