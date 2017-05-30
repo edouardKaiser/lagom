@@ -14,6 +14,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import play.Configuration
 
 import scala.compat.java8.OptionConverters._
+import scala.concurrent.Future
 
 class ConfigurationServiceLocatorSpec extends WordSpec with Matchers {
 
@@ -24,7 +25,9 @@ class ConfigurationServiceLocatorSpec extends WordSpec with Matchers {
       |  bar = "http://localhost:10002"
       |}
     """.stripMargin
-  )), MockitoSugar.mock(classOf[CircuitBreakers]))
+  )), new CircuitBreakers {
+    override def withCircuitBreaker[T](id: String)(body: => Future[T]): Future[T] = body
+  })
 
   def locate(serviceName: String) =
     serviceLocator.locate(serviceName).toCompletableFuture.get(10, TimeUnit.SECONDS).asScala
